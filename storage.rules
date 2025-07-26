@@ -1,0 +1,11 @@
+rules_version = '2';
+
+// 🚨 VULNERABLE RULES - DO NOT USE IN PRODUCTION! 🚨
+// This demonstrates the security vulnerability where anyone can read/write files
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /{allPaths=**} {
+      allow read, write: if true; // ⚠️ DANGEROUS: Allows anyone to access all files!
+    }
+  }
+}

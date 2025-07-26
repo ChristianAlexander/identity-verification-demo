@@ -1,0 +1,40 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Users can read their own profile and update non-sensitive fields
+    match /users/{userId} {
+      allow read: if request.auth != null && request.auth.uid == userId;
+
+      // Allow user creation but prevent setting isAdmin to true or verificationStatus to anything other than 'new'
+      allow create: if request.auth != null && request.auth.uid == userId &&
+        (!('isAdmin' in request.resource.data) || request.resource.data.isAdmin == false) &&
+        (!('verificationStatus' in request.resource.data) || request.resource.data.verificationStatus == 'new');
+
+      // Allow updates but prevent changing admin status or verification status
+      allow update: if request.auth != null && request.auth.uid == userId &&
+        (!('isAdmin' in request.resource.data) ||
+         request.resource.data.isAdmin == resource.data.isAdmin) &&
+        (!('verificationStatus' in request.resource.data) ||
+         request.resource.data.verificationStatus == resource.data.verificationStatus);
+
+      // Admins can read all user docs
+      allow read: if request.auth != null &&
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
+
+      // Only existing admins can modify any user docs (including admin status)
+      allow update: if request.auth != null &&
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
+    }
+
+    // Verification requests
+    match /verificationRequests/{requestId} {
+      allow create: if request.auth != null;
+      allow read, update: if request.auth != null &&
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isAdmin == true;
+    }
+  }
+}

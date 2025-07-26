@@ -1,0 +1,26 @@
+rules_version = '2';
+
+// 🔐 SECURE RULES - Use these in production!
+// This demonstrates proper security where only authorized users can access files
+service firebase.storage {
+  match /b/{bucket}/o {
+    // ID documents - only the user who uploaded it and admins can access
+    match /id-documents/{userId}/{fileName} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow read: if request.auth != null && 
+        firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.isAdmin == true;
+    }
+    
+    // Public assets (if any) - readable by all
+    match /public/{allPaths=**} {
+      allow read: if true;
+      allow write: if request.auth != null && 
+        firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.isAdmin == true;
+    }
+    
+    // Deny all other access
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}
