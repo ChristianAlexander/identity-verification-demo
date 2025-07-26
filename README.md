@@ -4,6 +4,8 @@ This repository demonstrates a critical Firebase Storage security vulnerability 
 
 ## YouTube Video Companion
 
+[![Watch the video](https://img.youtube.com/vi/mMvfBUNNKIY/maxresdefault.jpg)](https://youtu.be/mMvfBUNNKIY)
+
 This repo accompanies the YouTube video explaining Firebase Storage security best practices. The demo shows how vulnerable storage rules can expose sensitive user data and how to properly secure them.
 
 ## The Vulnerability
